@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 import requests
 
 # Define the bot token
-BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE'
+BOT_TOKEN = 7235160397:AAHPQzKelRMIAy2B_zZZZRdxuFMJAWZ71eQ
 
 # Define the start command handler
 def start(update: Update, context: CallbackContext) -> None:
@@ -12,7 +12,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
 # Define a simple function to fetch weather updates
 def get_weather(location):
-    api_key = 7235160397:AAHPQzKelRMIAy2B_zZZZRdxuFMJAWZ71eQ
+    api_key = '' 
     base_url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}"
     response = requests.get(base_url).json()
     if response['cod'] != '404':
