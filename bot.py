@@ -12,7 +12,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
 # Define a simple function to fetch weather updates
 def get_weather(location):
-    api_key = '' 
+    api_key = 'YOUR_WEATHER_API_KEY'
     base_url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}"
     response = requests.get(base_url).json()
     if response['cod'] != '404':
