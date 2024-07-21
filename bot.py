@@ -52,4 +52,5 @@ def index():
     return 'Bot is running!'
 
 if __name__ == '__main__':
-    app.run(port=8443)
+    port = int(os.environ.get('PORT', 8443))
+    app.run(host='0.0.0.0', port=port)
