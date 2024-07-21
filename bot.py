@@ -1,56 +1,67 @@
 from flask import Flask, request
-from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler, CallbackContext
 import requests
-import os
+import threading
+import time
+
+# Telegram Bot API token
+TOKEN = '7235160397:AAHPQzKelRMIAy2B_zZZZRdxuFMJAWZ71eQ'
+# Your app URL
+KEEP_ALIVE_URL = 'https://agro-bot.onrender.com/'
+# OpenWeatherMap API key
+WEATHER_API_KEY = 'your_openweathermap_api_key'
 
 app = Flask(__name__)
 
-# Initialize bot and dispatcher
-BOT_TOKEN = '7235160397:AAHPQzKelRMIAy2B_zZZZRdxuFMJAWZ71eQ'
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")  # Set this environment variable in Render
+@app.route(f'/{TOKEN}', methods=['POST'])
+def respond():
+    update = request.get_json()
+    if "message" in update:
+        chat_id = update["message"]["chat"]["id"]
+        text = update["message"].get("text", "")
 
-bot = Bot(token=BOT_TOKEN)
-dispatcher = Dispatcher(bot, None, workers=0, use_context=True)
+        if text == "/start":
+            response = "Hello! I am your Agriculture Bot."
+        elif text.startswith("/weather"):
+            location = text.split("/weather", 1)[1].strip()
+            response = get_weather(location)
+        else:
+            response = "I don't understand that command."
 
-# Define the start command handler
-def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(
-        'Hello! I am your Agriculture Bot. I can help you with weather updates, crop management tips, market prices, and more!')
+        send_message(chat_id, response)
+    return "ok", 200
 
-# Define a simple function to fetch weather updates
 def get_weather(location):
-    base_url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={WEATHER_API_KEY}"
-    response = requests.get(base_url).json()
-    if response['cod'] != '404':
-        main = response['main']
-        weather_description = response['weather'][0]['description']
-        return f"Temperature: {main['temp']}K\nWeather: {weather_description}"
-    else:
-        return "Location not found"
+    try:
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={WEATHER_API_KEY}&units=metric"
+        response = requests.get(url)
+        data = response.json()
 
-# Define the weather command handler
-def weather(update: Update, context: CallbackContext) -> None:
-    location = ' '.join(context.args)
-    weather_info = get_weather(location)
-    update.message.reply_text(weather_info)
+        if data["cod"] != 200:
+            return f"Error: {data['message']}"
 
-# Add command handlers to dispatcher
-dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(CommandHandler("weather", weather))
+        weather = data["weather"][0]["description"]
+        temperature = data["main"]["temp"]
+        return f"The weather in {location} is {weather} with a temperature of {temperature}°C."
+    except Exception as e:
+        return f"An error occurred: {e}"
 
-# Route to handle webhook updates
-@app.route('/' + BOT_TOKEN, methods=['POST'])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    dispatcher.process_update(update)
-    return 'ok'
+def send_message(chat_id, text):
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text
+    }
+    requests.post(url, json=payload)
 
-# Root route for health check
-@app.route('/')
-def index():
-    return 'Bot is running!'
+def keep_alive():
+    while True:
+        try:
+            requests.get(KEEP_ALIVE_URL)
+        except Exception as e:
+            print(f"Keep-alive ping failed: {e}")
+        time.sleep(25 * 60)  # Ping every 25 minutes
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8443))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    # Start the keep-alive pinging in a separate thread
+    threading.Thread(target=keep_alive).start()
+    app.run(host='0.0.0.0', port=5000)
