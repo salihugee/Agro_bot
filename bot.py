@@ -9,7 +9,7 @@ TOKEN = '7235160397:AAHPQzKelRMIAy2B_zZZZRdxuFMJAWZ71eQ'
 # Your app URL
 KEEP_ALIVE_URL = 'https://your-app.onrender.com/'
 # OpenWeatherMap API key
-WEATHER_API_KEY = 'your_openweathermap_api_key'
+WEATHER_API_KEY = '76403f65dd766d671d11e7f1f1101f0c'
 
 # Initialize the Flask application
 app = Flask(__name__)
