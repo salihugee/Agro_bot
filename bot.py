@@ -28,7 +28,7 @@ def respond():
         logging.debug(f"Received message: {text} from chat_id: {chat_id}")
 
         if text == "/start":
-            response = "Hello! I am your Agriculture Bot."
+            response = "Hello! I am your Agriculture Bot, How may i assist?"
             logging.debug(f"Response to /start: {response}")
         elif text.startswith("/weather"):
             location = text.split("/weather", 1)[1].strip()
